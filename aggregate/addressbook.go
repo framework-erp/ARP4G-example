@@ -2,13 +2,17 @@ package aggregate
 
 //联系人
 type Contact struct {
-	Id      int64
-	Name    string
-	GroupId int64
+	Id          int64
+	Name        string
+	PhoneNumber string
+	GroupId     int64
 }
 
 //分组，比如 家人、朋友
 type Group struct {
-	Id   int64
-	Name string
+	Id           int64
+	Name         string
+	ContactCount int
+	//0启用，1删除
+	State int
 }
