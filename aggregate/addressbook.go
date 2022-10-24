@@ -16,3 +16,15 @@ type Group struct {
 	//0启用，1删除
 	State int
 }
+
+func (group *Group) AddTo() {
+	group.ContactCount++
+}
+
+func (group *Group) RemoveFrom() {
+	group.ContactCount--
+}
+
+func (group *Group) SetAsRemoved() {
+	group.State = 1
+}
