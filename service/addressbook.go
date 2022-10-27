@@ -60,6 +60,9 @@ func (service *AddressBookServiceImpl) PutContactInGroup(ctx context.Context, co
 		group, found := service.GroupRepository.Take(ctx, originalGroupId)
 		if found {
 			group.RemoveFrom()
+			if group.IsDead() {
+				service.GroupRepository.Remove(ctx, originalGroupId)
+			}
 		}
 	}
 	contact.GroupId = groupId
@@ -78,6 +81,10 @@ func (service *AddressBookServiceImpl) RemoveGroup(ctx context.Context, groupId 
 		return
 	}
 	group.SetAsRemoved()
+	if group.IsDead() {
+		service.GroupRepository.Remove(ctx, groupId)
+		return
+	}
 }
 
 func (service *AddressBookServiceImpl) GetGroups(ctx context.Context) []*aggregate.Group {

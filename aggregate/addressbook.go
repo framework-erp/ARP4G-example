@@ -28,3 +28,7 @@ func (group *Group) RemoveFrom() {
 func (group *Group) SetAsRemoved() {
 	group.State = 1
 }
+
+func (group *Group) IsDead() bool {
+	return group.State == 1 && group.ContactCount == 0
+}
