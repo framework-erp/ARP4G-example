@@ -34,7 +34,7 @@ func (repo *ContactRepositoryImpl) FindContains(ctx context.Context, contains st
 		return nil, err
 	}
 	contacts := make([]*aggregate.Contact, 0)
-	for result := range results {
+	for _, result := range results {
 		var doc []byte
 		if doc, err = bson.Marshal(result); err != nil {
 			return nil, err
