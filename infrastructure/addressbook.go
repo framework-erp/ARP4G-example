@@ -10,17 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// type ContactRepository interface {
-// 	Find(ctx context.Context, id any) (entity *aggregate.Contact, found bool)
-// 	Take(ctx context.Context, id any) (entity *aggregate.Contact, found bool)
-// 	Put(ctx context.Context, id any, entity *aggregate.Contact)
-// 	Remove(ctx context.Context, id any) (removed *aggregate.Contact, exists bool)
-// 	FindContains(ctx context.Context, contains string) ([]*aggregate.Contact, error)
-// 	FindAllForGroup(ctx context.Context, groupId int64) ([]*aggregate.Contact, error)
-// }
-
 type ContactRepositoryImpl struct {
-	arp.Repository[*aggregate.Contact]
+	arp.QueryRepository[*aggregate.Contact]
 	coll *mongo.Collection
 }
 
@@ -44,4 +35,8 @@ func (repo *ContactRepositoryImpl) FindContains(ctx context.Context, contains st
 		contacts = append(contacts, contact)
 	}
 	return contacts, nil
+}
+
+func (repo *ContactRepositoryImpl) FindAllForGroup(ctx context.Context, groupId int64) ([]*aggregate.Contact, error) {
+	return repo.QueryAllByField(ctx, "GroupId", groupId)
 }
