@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"example/aggregate"
 	"example/idgenerator"
 	"example/repository"
@@ -10,23 +11,23 @@ import (
 //通讯录的服务
 type AddressBookService interface {
 	//添加联系人
-	AddContact(ctx context.Context, contactName string, phoneNumber string)
+	AddContact(ctx context.Context, contactName string, phoneNumber string) error
 	//删除联系人
-	RemoveContact(ctx context.Context, contactId int64)
+	RemoveContact(ctx context.Context, contactId int64) error
 	//把联系人放入组
-	PutContactInGroup(ctx context.Context, contactId int64, groupId int64)
+	PutContactInGroup(ctx context.Context, contactId int64, groupId int64) (*aggregate.Contact, error)
 	//添加组
-	AddGroup(ctx context.Context, groupName string)
+	AddGroup(ctx context.Context, groupName string) error
 	//删除组，该组的联系人不会被删除
-	RemoveGroup(ctx context.Context, groupId int64)
+	RemoveGroup(ctx context.Context, groupId int64) error
 	//获得所有的组
-	GetGroups(ctx context.Context) []*aggregate.Group
+	GetGroups(ctx context.Context) ([]*aggregate.Group, error)
 	//获得一个组的所有联系人
-	GetContactsForGroup(ctx context.Context, groupId int64) []*aggregate.Contact
+	GetContactsForGroup(ctx context.Context, groupId int64) ([]*aggregate.Contact, error)
 	//获得不在任何组的所有联系人，这些联系人通常会在客户端被包装成一个“朋友”组
-	GetContactsNotInGroup(ctx context.Context) []*aggregate.Contact
+	GetContactsNotInGroup(ctx context.Context) ([]*aggregate.Contact, error)
 	//模糊查询名字中包含特定文字的所有联系人
-	QueryContacts(ctx context.Context, contains string) []*aggregate.Contact
+	QueryContacts(ctx context.Context, contains string) ([]*aggregate.Contact, error)
 }
 
 type AddressBookServiceImpl struct {
@@ -36,24 +37,26 @@ type AddressBookServiceImpl struct {
 	GroupIdGenerator   idgenerator.GroupIdGenerator
 }
 
-func (service *AddressBookServiceImpl) AddContact(ctx context.Context, contactName string, phoneNumber string) {
+func (service *AddressBookServiceImpl) AddContact(ctx context.Context, contactName string, phoneNumber string) error {
 	id := service.ContactIdGenerator.GenerateId(ctx)
 	contact := &aggregate.Contact{id, contactName, phoneNumber, 0}
 	service.ContactRepository.Put(ctx, id, contact)
+	return nil
 }
 
-func (service *AddressBookServiceImpl) RemoveContact(ctx context.Context, contactId int64) {
+func (service *AddressBookServiceImpl) RemoveContact(ctx context.Context, contactId int64) error {
 	service.ContactRepository.Remove(ctx, contactId)
+	return nil
 }
 
-func (service *AddressBookServiceImpl) PutContactInGroup(ctx context.Context, contactId int64, groupId int64) {
+func (service *AddressBookServiceImpl) PutContactInGroup(ctx context.Context, contactId int64, groupId int64) (*aggregate.Contact, error) {
 	contact, found := service.ContactRepository.Take(ctx, contactId)
 	if !found {
-		return
+		return nil, errors.New("contact not found")
 	}
 	group, found := service.GroupRepository.Take(ctx, groupId)
 	if !found {
-		return
+		return nil, errors.New("group not found")
 	}
 	originalGroupId := contact.GroupId
 	if originalGroupId != 0 {
@@ -67,69 +70,71 @@ func (service *AddressBookServiceImpl) PutContactInGroup(ctx context.Context, co
 	}
 	contact.GroupId = groupId
 	group.AddTo()
+	return contact, nil
 }
 
-func (service *AddressBookServiceImpl) AddGroup(ctx context.Context, groupName string) {
+func (service *AddressBookServiceImpl) AddGroup(ctx context.Context, groupName string) error {
 	id := service.GroupIdGenerator.GenerateId(ctx)
 	group := &aggregate.Group{id, groupName, 0, 0}
 	service.GroupRepository.Put(ctx, id, group)
+	return nil
 }
 
-func (service *AddressBookServiceImpl) RemoveGroup(ctx context.Context, groupId int64) {
+func (service *AddressBookServiceImpl) RemoveGroup(ctx context.Context, groupId int64) error {
 	group, found := service.GroupRepository.Take(ctx, groupId)
 	if !found {
-		return
+		return errors.New("group not found")
 	}
 	group.SetAsRemoved()
 	if group.IsDead() {
 		service.GroupRepository.Remove(ctx, groupId)
-		return
 	}
+	return nil
 }
 
-func (service *AddressBookServiceImpl) GetGroups(ctx context.Context) []*aggregate.Group {
+func (service *AddressBookServiceImpl) GetGroups(ctx context.Context) ([]*aggregate.Group, error) {
 	groups, err := service.GroupRepository.GetAll(ctx)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return groups
+	return groups, nil
 }
 
-func (service *AddressBookServiceImpl) GetContactsForGroup(ctx context.Context, groupId int64) []*aggregate.Contact {
+func (service *AddressBookServiceImpl) GetContactsForGroup(ctx context.Context, groupId int64) ([]*aggregate.Contact, error) {
 	contacts, err := service.ContactRepository.FindAllForGroup(ctx, groupId)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return contacts
+	return contacts, nil
 }
 
-func (service *AddressBookServiceImpl) GetContactsNotInGroup(ctx context.Context, groupId int64) []*aggregate.Contact {
+func (service *AddressBookServiceImpl) GetContactsNotInGroup(ctx context.Context, groupId int64) ([]*aggregate.Contact, error) {
 	contactsNoGroup, err := service.ContactRepository.FindAllForGroup(ctx, 0)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	contactsNotInGroup := contactsNoGroup
 	deletedNotEmptyGroup, err := service.GroupRepository.GetAllDeletedNotEmpty(ctx)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	if len(deletedNotEmptyGroup) == 0 {
-		return contactsNoGroup
+		return contactsNoGroup, nil
 	}
 	for _, group := range deletedNotEmptyGroup {
 		contacts, err := service.ContactRepository.FindAllForGroup(ctx, group.Id)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 		contactsNotInGroup = append(contactsNotInGroup, contacts...)
 	}
-	return contactsNotInGroup
+	return contactsNotInGroup, nil
 }
 
-func (service *AddressBookServiceImpl) QueryContacts(ctx context.Context, contains string) []*aggregate.Contact {
+func (service *AddressBookServiceImpl) QueryContacts(ctx context.Context, contains string) ([]*aggregate.Contact, error) {
 	contacts, err := service.ContactRepository.FindContains(ctx, contains)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return contacts
+	return contacts, nil
 }
