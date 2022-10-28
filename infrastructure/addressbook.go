@@ -82,12 +82,39 @@ func (repo *GroupRepositoryImpl) GetAllDeletedNotEmpty(ctx context.Context) ([]*
 }
 
 type ArpAddressBookService struct {
-	addressBookService service.AddressBookService
+	service.AddressBookService
 }
 
 func (service *ArpAddressBookService) AddContact(ctx context.Context, contactName string, phoneNumber string) error {
-	var bizErr error
-	err := arp.Go(ctx, func(ctx context.Context) {
-		bizErr = service.addressBookService.AddContact(ctx, contactName, phoneNumber)
+	return arp.Go(ctx, func(ctx context.Context) error {
+		return service.AddressBookService.AddContact(ctx, contactName, phoneNumber)
+	})
+}
+
+func (service *ArpAddressBookService) RemoveContact(ctx context.Context, contactId int64) error {
+	return arp.Go(ctx, func(ctx context.Context) error {
+		return service.AddressBookService.RemoveContact(ctx, contactId)
+	})
+}
+
+func (service *ArpAddressBookService) PutContactInGroup(ctx context.Context, contactId int64, groupId int64) (*aggregate.Contact, error) {
+	var contactToReturn *aggregate.Contact
+	err := arp.Go(ctx, func(ctx context.Context) error {
+		contact, err := service.AddressBookService.PutContactInGroup(ctx, contactId, groupId)
+		contactToReturn = contact
+		return err
+	})
+	return contactToReturn, err
+}
+
+func (service *ArpAddressBookService) AddGroup(ctx context.Context, groupName string) error {
+	return arp.Go(ctx, func(ctx context.Context) error {
+		return service.AddressBookService.AddGroup(ctx, groupName)
+	})
+}
+
+func (service *ArpAddressBookService) RemoveGroup(ctx context.Context, groupId int64) error {
+	return arp.Go(ctx, func(ctx context.Context) error {
+		return service.AddressBookService.RemoveGroup(ctx, groupId)
 	})
 }
