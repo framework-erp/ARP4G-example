@@ -11,13 +11,13 @@ import (
 //通讯录的服务
 type AddressBookService interface {
 	//添加联系人
-	AddContact(ctx context.Context, contactName string, phoneNumber string) error
+	AddContact(ctx context.Context, contactName string, phoneNumber string) (*aggregate.Contact, error)
 	//删除联系人
 	RemoveContact(ctx context.Context, contactId int64) error
 	//把联系人放入组
 	PutContactInGroup(ctx context.Context, contactId int64, groupId int64) (*aggregate.Contact, error)
 	//添加组
-	AddGroup(ctx context.Context, groupName string) error
+	AddGroup(ctx context.Context, groupName string) (*aggregate.Group, error)
 	//删除组，该组的联系人不会被删除
 	RemoveGroup(ctx context.Context, groupId int64) error
 	//获得所有的组
@@ -28,6 +28,7 @@ type AddressBookService interface {
 	GetContactsNotInGroup(ctx context.Context) ([]*aggregate.Contact, error)
 	//模糊查询名字中包含特定文字的所有联系人
 	QueryContacts(ctx context.Context, contains string) ([]*aggregate.Contact, error)
+	FindContactById(ctx context.Context, contactId int64) (*aggregate.Contact, error)
 }
 
 type AddressBookServiceImpl struct {
@@ -37,11 +38,11 @@ type AddressBookServiceImpl struct {
 	GroupIdGenerator   idgenerator.GroupIdGenerator
 }
 
-func (service *AddressBookServiceImpl) AddContact(ctx context.Context, contactName string, phoneNumber string) error {
+func (service *AddressBookServiceImpl) AddContact(ctx context.Context, contactName string, phoneNumber string) (*aggregate.Contact, error) {
 	id := service.ContactIdGenerator.GenerateId(ctx)
 	contact := &aggregate.Contact{id, contactName, phoneNumber, 0}
 	service.ContactRepository.Put(ctx, id, contact)
-	return nil
+	return contact, nil
 }
 
 func (service *AddressBookServiceImpl) RemoveContact(ctx context.Context, contactId int64) error {
@@ -73,11 +74,11 @@ func (service *AddressBookServiceImpl) PutContactInGroup(ctx context.Context, co
 	return contact, nil
 }
 
-func (service *AddressBookServiceImpl) AddGroup(ctx context.Context, groupName string) error {
+func (service *AddressBookServiceImpl) AddGroup(ctx context.Context, groupName string) (*aggregate.Group, error) {
 	id := service.GroupIdGenerator.GenerateId(ctx)
 	group := &aggregate.Group{id, groupName, 0, 0}
 	service.GroupRepository.Put(ctx, id, group)
-	return nil
+	return group, nil
 }
 
 func (service *AddressBookServiceImpl) RemoveGroup(ctx context.Context, groupId int64) error {
@@ -108,7 +109,7 @@ func (service *AddressBookServiceImpl) GetContactsForGroup(ctx context.Context, 
 	return contacts, nil
 }
 
-func (service *AddressBookServiceImpl) GetContactsNotInGroup(ctx context.Context, groupId int64) ([]*aggregate.Contact, error) {
+func (service *AddressBookServiceImpl) GetContactsNotInGroup(ctx context.Context) ([]*aggregate.Contact, error) {
 	contactsNoGroup, err := service.ContactRepository.FindAllForGroup(ctx, 0)
 	if err != nil {
 		return nil, err
@@ -137,4 +138,12 @@ func (service *AddressBookServiceImpl) QueryContacts(ctx context.Context, contai
 		return nil, err
 	}
 	return contacts, nil
+}
+
+func (service *AddressBookServiceImpl) FindContactById(ctx context.Context, contactId int64) (*aggregate.Contact, error) {
+	contact, found := service.ContactRepository.Find(ctx, contactId)
+	if !found {
+		return nil, errors.New("contact not found")
+	}
+	return contact, nil
 }
