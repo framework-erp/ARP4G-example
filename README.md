@@ -20,11 +20,13 @@ go run main.go
 ```
 
 3. 功能验证
+
+
 在浏览器输入：
 ```
 http://127.0.0.1:8080/addressbook/addcontact?name=neo&phone=12346
 ```
-你将看到返回的JSON
+你将看到返回的JSON：
 ```json
 {
 	"data": {
@@ -37,3 +39,5 @@ http://127.0.0.1:8080/addressbook/addcontact?name=neo&phone=12346
 }
 ```
 你新添加了一个联系人
+
+更多的功能接口请查阅[路由配置](https://github.com/zhengchengdong/ARP4G-example/blob/master/routers/addressbook.go)
