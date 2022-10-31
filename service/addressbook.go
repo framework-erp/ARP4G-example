@@ -46,7 +46,16 @@ func (service *AddressBookServiceImpl) AddContact(ctx context.Context, contactNa
 }
 
 func (service *AddressBookServiceImpl) RemoveContact(ctx context.Context, contactId int64) error {
-	service.ContactRepository.Remove(ctx, contactId)
+	removed, exists := service.ContactRepository.Remove(ctx, contactId)
+	if exists && removed.GroupId != 0 {
+		group, found := service.GroupRepository.Take(ctx, removed.GroupId)
+		if found {
+			group.RemoveFrom()
+			if group.IsDead() {
+				service.GroupRepository.Remove(ctx, removed.GroupId)
+			}
+		}
+	}
 	return nil
 }
 
