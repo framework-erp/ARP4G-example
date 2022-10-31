@@ -14,3 +14,7 @@ go get -u github.com/zhengchengdong/ARP4G-example
 cd ARP4G-example/cmd
 go run main.go
 ```
+这会启动一个HTTP服务在8080端口，看见以下提示说明启动成功：
+```sh
+[GIN-debug] Listening and serving HTTP on :8080
+```
