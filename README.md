@@ -18,3 +18,9 @@ go run main.go
 ```sh
 [GIN-debug] Listening and serving HTTP on :8080
 ```
+
+3. 功能验证
+在浏览器输入：
+```http
+http://127.0.0.1:8080/addressbook/addcontact?name=neo&phone=12346
+```
