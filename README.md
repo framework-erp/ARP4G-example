@@ -21,6 +21,19 @@ go run main.go
 
 3. 功能验证
 在浏览器输入：
-```http
+```
 http://127.0.0.1:8080/addressbook/addcontact?name=neo&phone=12346
 ```
+你将看到返回的JSON
+```json
+{
+	"data": {
+		"Id": 1586935438273155072,
+		"Name": "neo",
+		"PhoneNumber": "12346",
+		"GroupId": 0
+	},
+	"success": true
+}
+```
+你新添加了一个联系人
