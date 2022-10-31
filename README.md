@@ -11,6 +11,6 @@ go get -u github.com/zhengchengdong/ARP4G-example
 
 2. 运行ARP4G-example
 ```sh
-cd  ARP4G-example/cmd
+cd ARP4G-example/cmd
 go run main.go
 ```
