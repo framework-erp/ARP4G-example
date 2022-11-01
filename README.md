@@ -6,7 +6,7 @@
 1. 首先需要 [Go](https://golang.org/) 已安装（**1.18及以上版本**），和[MongoDB](https://www.mongodb.com/try/download/community)，然后可以用以下命令安装ARP4G-example。
 
 ```sh
-git clone https://github.com/zhengchengdong/ARP4G-example.git
+git clone https://github.com/framework-arp/ARP4G-example.git
 ```
 
 
@@ -42,9 +42,9 @@ http://127.0.0.1:8080/addressbook/addcontact?name=neo&phone=12346
 ```
 你新添加了一个联系人。
 
-想要运行更多的功能接口请查阅代码[gin 路由](https://github.com/zhengchengdong/ARP4G-example/blob/master/routers/addressbook.go)
+想要运行更多的功能接口请查阅代码[gin 路由](https://github.com/framework-arp/ARP4G-example/blob/master/routers/addressbook.go)
 
-建议从参考代码的角度，[AddressBookService](https://github.com/zhengchengdong/ARP4G-example/blob/master/service/addressbook.go)中的service定义是一个更好的入口：
+建议从参考代码的角度，[AddressBookService](https://github.com/framework-arp/ARP4G-example/blob/master/service/addressbook.go)中的service定义是一个更好的入口：
 ```go
 //通讯录的服务
 type AddressBookService interface {
