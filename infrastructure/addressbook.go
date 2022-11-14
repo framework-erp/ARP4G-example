@@ -14,7 +14,7 @@ import (
 )
 
 type ContactRepositoryImpl struct {
-	arp.QueryRepository[*aggregate.Contact]
+	*mongorepo.MongodbRepository[*aggregate.Contact]
 	coll *mongo.Collection
 }
 
@@ -54,7 +54,7 @@ func NewContactRepositoryImpl(mongoClient *mongo.Client) *ContactRepositoryImpl 
 }
 
 type GroupRepositoryImpl struct {
-	arp.QueryRepository[*aggregate.Group]
+	*mongorepo.MongodbRepository[*aggregate.Group]
 	coll *mongo.Collection
 }
 
