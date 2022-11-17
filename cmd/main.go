@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"example/infrastructure"
+	"example/infrastructure/arpservice"
 	"example/routers"
 
 	"github.com/bwmarrin/snowflake"
@@ -19,7 +19,7 @@ func main() {
 	}
 
 	node, err := snowflake.NewNode(1)
-	routers.AddressBookService = infrastructure.NewArpAddressBookService(mongoClient, node)
+	routers.AddressBookService = arpservice.NewArpAddressBookService(mongoClient, node)
 
 	r := gin.Default()
 	mbrs := r.Group("/addressbook")

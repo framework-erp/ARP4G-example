@@ -2,7 +2,7 @@ package test
 
 import (
 	"context"
-	"example/infrastructure"
+	"example/infrastructure/arpservice"
 	"example/service"
 	"testing"
 
@@ -13,7 +13,7 @@ import (
 func TestPlaceOrder(t *testing.T) {
 	node, err := snowflake.NewNode(1)
 	var addressBookService service.AddressBookService
-	addressBookService = infrastructure.NewArpAddressBookService(nil, node)
+	addressBookService = arpservice.NewArpAddressBookService(nil, node)
 
 	contact, err := addressBookService.AddContact(context.Background(), "neo", "12345")
 	test.AssertNoError(t, err)
